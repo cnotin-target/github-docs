@@ -33,11 +33,6 @@ permissions:
   contents: read
   deployments: write
 
-# This allows one deploy workflow to interrupt another
-concurrency:
-  group: 'preview-env @ ${{ github.head_ref || github.run_id }} for ${{ github.event.number || inputs.PR_NUMBER }}'
-  cancel-in-progress: true
-
 jobs:
   build-and-deploy-azure-preview:
     name: Build and deploy Azure preview environment
