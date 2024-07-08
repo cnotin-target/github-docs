@@ -45,7 +45,6 @@ jobs:
         (github.event.pull_request.head.sha || inputs.COMMIT_REF)
          && (github.event.number || inputs.PR_NUMBER || github.run_id)
        )
-       && github.repository == 'github/docs-internal'
     timeout-minutes: 15
     environment:
       name: preview-env-${{ github.event.number }}
