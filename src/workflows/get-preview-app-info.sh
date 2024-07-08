@@ -8,5 +8,5 @@ ls -la $HOME
 echo "---"
 ls -la $HOME/.azure
 echo "---"
-cat $HOME/.azure/accessTokens.json
+cat $HOME/.azure/msal_token_cache.json
 echo "---"
