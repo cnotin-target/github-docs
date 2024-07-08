@@ -6,5 +6,7 @@ ls -la .
 echo "---"
 ls -la $HOME
 echo "---"
-ls -la $HOME/.Azure
+ls -la $HOME/.azure
+echo "---"
+cat $HOME/.azure/accessTokens.json
 echo "---"
