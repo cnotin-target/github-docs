@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo "coucou"
+echo "coucou2"
 
