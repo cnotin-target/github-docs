@@ -1,0 +1,94 @@
+name: Azure - Deploy Preview Environment (private)
+
+# NOTE! This is specifically and only for github/docs-internal.
+
+# **What it does**: Build and deploy an Azure preview environment for this PR in github/docs-internal
+# **Why we have it**: It's our preview environment deploy mechanism, to docs-internal repo
+# **Who does it impact**: Writ-access contributors.
+
+on:
+  # The advantage of 'pull_request' over 'pull_request_target' is that we
+  # can make changes to this file and test them in a pull request, instead
+  # of relying on landing it in 'main' first.
+  # From a security point of view, its arguably safer this way because
+  # unlike 'pull_request_target', these only have secrets if the pull
+  # request creator has permission to access secrets.
+  pull_request_target:
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      PR_NUMBER:
+        description: 'PR Number'
+        type: string
+        required: true
+      COMMIT_REF:
+        description: 'The commit SHA to build'
+        type: string
+        required: true
+      WITH_TRANSLATIONS:
+        description: 'With translations'
+        required: true
+        type: boolean
+permissions:
+  contents: read
+  deployments: write
+
+# This allows one deploy workflow to interrupt another
+concurrency:
+  group: 'preview-env @ ${{ github.head_ref || github.run_id }} for ${{ github.event.number || inputs.PR_NUMBER }}'
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy-azure-preview:
+    name: Build and deploy Azure preview environment
+    runs-on: ubuntu-latest
+    # Ensure this is actually a pull request and not a merge group
+    # If its a merge group, report success without doing anything
+    # See https://bit.ly/3qB9nZW > If a job in a workflow is skipped due to a conditional, it will report its status as "Success".
+    if: |
+      (
+        (github.event.pull_request.head.sha || inputs.COMMIT_REF)
+         && (github.event.number || inputs.PR_NUMBER || github.run_id)
+       )
+       && github.repository == 'github/docs-internal'
+    timeout-minutes: 15
+    environment:
+      name: preview-env-${{ github.event.number }}
+      # The environment variable is computer later in this job in
+      # the "Get preview app info" step.
+      # That script sets environment variables which is used by Actions
+      # to link a PR to a list of environments later.
+      url: ${{ env.APP_URL }}
+    env:
+      PR_NUMBER: ${{ github.event.number || inputs.PR_NUMBER || github.run_id }}
+      COMMIT_REF: ${{ github.event.pull_request.head.sha || inputs.COMMIT_REF }}
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+      NONPROD_REGISTRY_USERNAME: ghdocsinternal
+
+    steps:
+      - name: 'Az CLI login'
+        uses: azure/login@6c251865b4e6290e7b78be643ea2d005bc51f69a # pin @v2
+        with:
+          creds: ${{ secrets.NONPROD_AZURE_CREDENTIALS }}
+
+      - name: 'Docker login'
+        uses: azure/docker-login@15c4aadf093404726ab2ff205b2cdd33fa6d054c
+        with:
+          login-server: ${{ secrets.NONPROD_REGISTRY_SERVER }}
+          username: ${{ env.NONPROD_REGISTRY_USERNAME }}
+          password: ${{ secrets.NONPROD_REGISTRY_PASSWORD }}
+
+      #- name: Set up Docker Buildx
+      #  uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
+
+      - name: Check out PR code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ env.COMMIT_REF }}
+          # To prevent issues with cloning early access content later
+          persist-credentials: 'false'
+
+      - name: Get preview app info
+        env:
+          APP_NAME_SEED: ${{ secrets.PREVIEW_ENV_NAME_SEED }}
+        run: src/workflows/get-preview-app-info.sh
