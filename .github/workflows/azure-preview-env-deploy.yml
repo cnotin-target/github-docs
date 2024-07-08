@@ -60,17 +60,17 @@ jobs:
       NONPROD_REGISTRY_USERNAME: ghdocsinternal
 
     steps:
-      - name: 'Az CLI login'
-        uses: azure/login@6c251865b4e6290e7b78be643ea2d005bc51f69a # pin @v2
-        with:
-          creds: ${{ secrets.NONPROD_AZURE_CREDENTIALS }}
+      #- name: 'Az CLI login'
+      #  uses: azure/login@6c251865b4e6290e7b78be643ea2d005bc51f69a # pin @v2
+      #  with:
+      #    creds: ${{ secrets.NONPROD_AZURE_CREDENTIALS }}
 
-      - name: 'Docker login'
-        uses: azure/docker-login@15c4aadf093404726ab2ff205b2cdd33fa6d054c
-        with:
-          login-server: ${{ secrets.NONPROD_REGISTRY_SERVER }}
-          username: ${{ env.NONPROD_REGISTRY_USERNAME }}
-          password: ${{ secrets.NONPROD_REGISTRY_PASSWORD }}
+      #- name: 'Docker login'
+      #  uses: azure/docker-login@15c4aadf093404726ab2ff205b2cdd33fa6d054c
+      #  with:
+      #    login-server: ${{ secrets.NONPROD_REGISTRY_SERVER }}
+      #    username: ${{ env.NONPROD_REGISTRY_USERNAME }}
+      #    password: ${{ secrets.NONPROD_REGISTRY_PASSWORD }}
 
       #- name: Set up Docker Buildx
       #  uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
